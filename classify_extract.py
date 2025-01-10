@@ -124,7 +124,7 @@ def extrair_dados(tipo_documento, document_text):
 
 
 
-caminho_arquivo = r"files/CEI DA OBRA 2.pdf"  # Altere para o caminho correto do seu arquivo
+caminho_arquivo = os.getenv("FILE_PATH") # No caso de ter o caminho absoluto do arquivo altere para o caminho correto do seu arquivo
 document_text = extrair_texto_de_arquivo(caminho_arquivo)
 tipo_documento = classificar_tipo_documento(document_text)
 
