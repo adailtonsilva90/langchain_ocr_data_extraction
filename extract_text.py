@@ -4,6 +4,10 @@ import fitz  # PyMuPDF
 from PIL import Image
 import io
 import numpy as np
+from dotenv import load_dotenv
+
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
 
 # Função para extrair texto de arquivos PDF (com OCR se for imagem)
 def extrair_texto_pdf(caminho_pdf):
@@ -57,6 +61,6 @@ def extrair_texto_de_arquivo(caminho_arquivo):
         raise ValueError("Tipo de arquivo não suportado!")
 
 # Exemplo de uso
-caminho_arquivo = r"C:\META\LANGCHAIN\files\Comp. Banco.png"  # Substitua com o caminho do seu arquivo
+caminho_arquivo = os.getenv("FILE_PATH") # No caso de ter o caminho absoluto do arquivo altere para o caminho correto do seu arquivo
 texto_extraido = extrair_texto_de_arquivo(caminho_arquivo)
 print("Texto extraído:", texto_extraido)

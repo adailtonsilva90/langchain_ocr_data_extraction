@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 import json
 
-#Caso queira usar po pydantic
+#Caso queira usar do pydantic
 # class Documento(BaseModel):
 #     razao_social: str = Field(description="Razão social da empresa. Nome oficial registrado para fins legais e fiscais.")
 #     agencia: str = Field(description="Numerical representation of the client's bank branch")
@@ -21,12 +21,14 @@ def gerar_prompt_comp_banco(document_text: str) -> str:
     Texto do documento:
     {document_text}
 
-    Responda no formato JSON:
+    Responda apenas no formato JSON:
     {{
         "razao_social": "Preencha com a razão social extraída do documento",
         "agencia": "Preencha com o número da agência extraída do documento",
         "conta": "Preencha com o número da conta extraída do documento",
         "nome_banco": "Preencha com o nome do banco extraído do documento"
     }}
+
+    Caso não encontre o dado retorne "Não foi possível localizar este 
     """
     return prompt.strip()

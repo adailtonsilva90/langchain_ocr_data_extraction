@@ -1,10 +1,10 @@
 from langchain_openai import ChatOpenAI 
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain  # Usando LLMChain, pois é uma alternativa ao RunnableSequence
-from pydantic import ValidationError
+#from pydantic import ValidationError
+#from pydantic import BaseModel, Field
 import os
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
 import fitz  # PyMuPDF (não precisa do Poppler)
 import openai  # Necessário para interação com a OpenAI API
 import easyocr  # Usando EasyOCR para OCR para não precisar instalar o tesseract no servidor
@@ -33,7 +33,7 @@ Texto do documento:
 
 Responda com apenas o tipo do documento. Exemplo: "Comprovante Bancário" ou "CEI da Obra".
 """
-# Passo 1: Configurar LangChain e Prompt
+#Configurar LangChain e Prompt
 llm = ChatOpenAI(model="gpt-4", temperature=0)  # Alterado para ChatOpenAI
 prompt = PromptTemplate(input_variables=["document_text"], template=prompt_template)
 chain = LLMChain(llm=llm, prompt=prompt)  # Usando LLMChain
@@ -90,10 +90,9 @@ def extrair_texto_de_arquivo(caminho_arquivo):
     
     else:
         raise ValueError("Tipo de arquivo não suportado!")
-    
 
 
-# Passo 2: Função para classificar o tipo de documento
+# Função para classificar o tipo de documento
 def classificar_tipo_documento(document_text):
     # Usa o LangChain para obter a classificação
     tipo_documento = chain.run({"document_text": document_text})
@@ -112,7 +111,7 @@ def extrair_dados(tipo_documento, document_text):
             prompt = PromptTemplate(input_variables=["document_text"], template=prompt_template)
 
         else:
-            return {"success": False, "error": "Tipo de documento desconhecido"}        
+            return {"success": False, "error": "Tipo de documento desconhecido ou não suportado!"}        
         
         chain = LLMChain(llm=llm, prompt=prompt)  # Usando LLMChain
         response = chain.run({"document_text": document_text})
