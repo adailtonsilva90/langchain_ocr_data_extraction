@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-import json
 
 #Caso queira usar do pydantic
 # class Documento(BaseModel):
@@ -8,7 +7,7 @@ import json
 #     conta: str = Field(description="Numerical representation of the client's bank account")
 #     nome_banco: str = Field(description="Name of the banking institution")
 
-def gerar_prompt_comp_banco(document_text: str) -> str:
+def generate_prompt_receipt_bank(document_text: str) -> str:
     
     prompt = """
     Você é um agente que extrai informações de comprovantes bancários escaneados.

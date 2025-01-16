@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 #                             "Deve incluir rua, número, complemento (se houver), bairro, cidade, estado e CEP. "
 #                             "Exemplo: 'Rua das Flores, 123, Apto 45, Bairro Centro, São Paulo, SP, 01234-567'.")
 
-def gerar_prompt_cei_obra(document_text: str) -> str:
+def generate_prompt_cei_obra(document_text: str) -> str:
 
   prompt = """
   Você é um agente que extrai informações de documentos de CEI da Obra. 
@@ -39,7 +39,7 @@ def gerar_prompt_cei_obra(document_text: str) -> str:
   Texto do documento:
   {document_text}
 
-  Responda apenas no formato JSON:
+  Responda apenas o JSON:
   {{
     "razao_social": "Preencha com a razão social extraída do documento",
     "cnpj": "Preencha com o cnpja extraído do documento",
