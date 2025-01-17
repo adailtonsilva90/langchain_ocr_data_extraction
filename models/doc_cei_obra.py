@@ -41,7 +41,7 @@ def generate_prompt_cei_obra(document_text: str) -> str:
 
   Responda apenas o JSON:
   {{
-    "razao_social": "Preencha com a razão social extraída do documento",
+    "razao_social2": "Preencha com a razão social extraída do documento",
     "cnpj": "Preencha com o cnpja extraído do documento",
     "endereco": "Preencha com o endereço extraído do documento
   }}

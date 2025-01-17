@@ -1,9 +1,6 @@
 from langchain_openai import ChatOpenAI 
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain  # Using LLMChain as an alternative to RunnableSequence
-#imports from pydantic for validation
-#from pydantic import ValidationError
-#from pydantic import BaseModel, Field
 import os
 from dotenv import load_dotenv
 import openai  # Necessary for interacting with the OpenAI API
