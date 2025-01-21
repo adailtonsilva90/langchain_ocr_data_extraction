@@ -20,7 +20,7 @@ def generate_prompt_receipt_bank(document_text: str) -> str:
     Texto do documento:
     {document_text}
 
-    Responda apenas no formato JSON:
+    Responda apenas no formato o JSON:
     {{
         "razao_social": "Preencha com a razão social extraída do documento",
         "agencia": "Preencha com o número da agência extraída do documento",

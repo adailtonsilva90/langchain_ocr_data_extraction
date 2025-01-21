@@ -9,6 +9,7 @@ from models.doc_receipt_bank import generate_prompt_receipt_bank
 from models.doc_cei_obra import generate_prompt_cei_obra
 from classify.classify import classify_type_document
 from extract.extract_text_file import extract_text_from_file
+import re
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -35,7 +36,11 @@ def extract_data(document_type, document_text):
         
         chain = LLMChain(llm=llm, prompt=prompt)  # Using LLMChain
         response = chain.run({"document_text": document_text})
-        return response
+        match = re.search(r"\{.*?\}", response, re.DOTALL)
+        if match:
+            match = match.group(0)
+
+        return match 
         
             
     except Exception as e:

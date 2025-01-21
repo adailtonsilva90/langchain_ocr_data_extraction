@@ -1,0 +1,8 @@
+langchain
+langchain-openai
+pydantic
+python-dotenv
+PyMuPDF
+pillow
+numpy
+azure-ai-formrecognizer

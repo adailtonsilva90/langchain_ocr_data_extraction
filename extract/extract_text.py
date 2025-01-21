@@ -1,66 +1,78 @@
+from azure.ai.formrecognizer import DocumentAnalysisClient
+from azure.core.credentials import AzureKeyCredential
 import os
-import easyocr
-import fitz  # PyMuPDF
+from dotenv import load_dotenv
+import fitz  # PyMuPDF (does not require Poppler)
 from PIL import Image
 import io
-import numpy as np
-from dotenv import load_dotenv
 
-# Carrega as variáveis de ambiente do arquivo .env
+# Load environment variables from the .env file
 load_dotenv()
 
-# Função para extrair texto de arquivos PDF (com OCR se for imagem)
-def extrair_texto_pdf(caminho_pdf):
-    texto = ""
-    # Abre o arquivo PDF com PyMuPDF
-    with fitz.open(caminho_pdf) as doc:
-        for pagina_num in range(doc.page_count):
-            pagina = doc.load_page(pagina_num)
+# Azure credentials
+AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT")
+AZURE_API_KEY = os.getenv("AZURE_API_KEY")
 
-            # Converte a página em imagem
-            imagem = pagina.get_pixmap()
-            imagem_bytes = imagem.tobytes("png")
-            img = Image.open(io.BytesIO(imagem_bytes))
+# Initialize Azure Form Recognizer client
+document_analysis_client = DocumentAnalysisClient(
+    endpoint=AZURE_ENDPOINT,
+    credential=AzureKeyCredential(AZURE_API_KEY)
+)
+
+# Function to extract text from a file using Azure Form Recognizer
+def extract_text_with_azure(file_path):
+    with open(file_path, "rb") as file_stream:
+        poller = document_analysis_client.begin_analyze_document(
+            "prebuilt-read", document=file_stream
+        )
+        result = poller.result()
+    
+    text = ""
+    for page in result.pages:
+        for line in page.lines:
+            text += line.content + "\n"
+    return text
+
+# Function to extract text from PDF files
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    # Open the PDF file using PyMuPDF
+    with fitz.open(pdf_path) as doc:
+        for page_num in range(doc.page_count):
+            page = doc.load_page(page_num)
+
+            # Convert the page to an image
+            image = page.get_pixmap()
+            image_bytes = image.tobytes("png")
+            img = Image.open(io.BytesIO(image_bytes))
+
+            # Save the image temporarily for Azure processing
+            temp_image_path = f"temp_page_{page_num}.png"
+            img.save(temp_image_path)
             
-            # Usando EasyOCR para fazer OCR na imagem da página
-            texto += extrair_texto_imagem(img)
-    return texto
+            # Use Azure Form Recognizer to perform OCR on the page image
+            text += extract_text_with_azure(temp_image_path)
+            
+            # Remove the temporary file
+            os.remove(temp_image_path)
+    return text
 
+# Main function to handle different file types
+def extract_text_from_file(file_path):
+    # Check the file extension
+    extension = file_path.lower().split('.')[-1]
 
-def extrair_texto_imagem(caminho_imagem):
-
-    # Verifica se a entrada é uma string (caminho de arquivo) ou imagem PIL
-    if isinstance(caminho_imagem, str):
-        # Se for caminho de arquivo, o EasyOCR pode processar diretamente
-        img = caminho_imagem
-    else:
-        # Se for imagem PIL, converte para numpy array
-        img = np.array(caminho_imagem)
+    if extension == "pdf":
+        return extract_text_from_pdf(file_path)
     
-    # Inicializa o leitor do EasyOCR
-    reader = easyocr.Reader(['pt', 'en'])  # Suporta múltiplos idiomas
-    resultado = reader.readtext(img)
-    
-    texto = ""
-    for item in resultado:
-        texto += item[1] + "\n"  # Extrai o texto das imagens
-    return texto
-
-# Função principal para lidar com diferentes tipos de arquivo
-def extrair_texto_de_arquivo(caminho_arquivo):
-    # Verifica a extensão do arquivo
-    extensao = caminho_arquivo.lower().split('.')[-1]
-
-    if extensao == "pdf":
-        return extrair_texto_pdf(caminho_arquivo)
-    
-    elif extensao in ["png", "jpeg", "jpg"]:
-        return extrair_texto_imagem(caminho_arquivo)
+    elif extension in ["png", "jpeg", "jpg"]:
+        return extract_text_with_azure(file_path)
     
     else:
-        raise ValueError("Tipo de arquivo não suportado!")
+        raise ValueError("Unsupported file type!")
+
 
 # Exemplo de uso
-caminho_arquivo = os.getenv("FILE_PATH") # No caso de ter o caminho absoluto do arquivo altere para o caminho correto do seu arquivo
-texto_extraido = extrair_texto_de_arquivo(caminho_arquivo)
-print("Texto extraído:", texto_extraido)
+file_path = os.getenv("FILE_PATH") # No caso de ter o caminho absoluto do arquivo altere para o caminho correto do seu arquivo
+extract_text = extract_text_from_file(file_path)
+print("Texto extraído:", extract_text)
