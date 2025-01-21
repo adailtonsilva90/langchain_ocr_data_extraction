@@ -10,6 +10,7 @@ from models.doc_cei_obra import generate_prompt_cei_obra
 from classify.classify import classify_type_document
 from extract.extract_text_file import extract_text_from_file
 import re
+from fastapi import APIRouter, UploadFile, HTTPException,FastAPI
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -46,11 +47,36 @@ def extract_data(document_type, document_text):
     except Exception as e:
         return json.dumps({"success": False, "error": str(e)})
 
+app = FastAPI()
+@app.post("/process")
+async def process_document(file: UploadFile):
+    try:    
+        #Validar extensão do arquivo
+        if not file.filename.endswith((".pdf", ".png", ".jpeg", ".jpg")):
+            raise HTTPException(status_code=400, detail="Formato de arquivo não suportado.")
+        
+        
+        #print(file)
+        document_text = await extract_text_from_file(file)
+        if not document_text:
+            raise HTTPException(status_code=400, detail="Não foi possível extrair texto do arquivo.")
 
-file_path = os.getenv("FILE_PATH")  # If using an absolute file path, replace it with the correct path to your file
-document_text = extract_text_from_file(file_path)
-document_type = classify_type_document(document_text)
+        document_type = classify_type_document(document_text)
+        if not document_type:
+            raise HTTPException(status_code=400, detail="Não foi possível classificar o documento.")
+        
+        result = extract_data(document_type, document_text)  # Validate the document based on the classified type
+        if not result:
+            raise HTTPException(status_code=400, detail="Erro ao processar o documento.")
+        
 
-result = extract_data(document_type, document_text)  # Validate the document based on the classified type
-if result:
-    print("\n\n", result)
+        json_response = json.loads(result)
+        return {"success": True, "data": json_response }
+        
+        # print(file)
+        # return {"success": True, "data": file}
+        # if result:
+        #     print("\n\n", result)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

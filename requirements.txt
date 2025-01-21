@@ -6,3 +6,6 @@ PyMuPDF
 pillow
 numpy
 azure-ai-formrecognizer
+fastapi
+uvicorn
+python-multipart
