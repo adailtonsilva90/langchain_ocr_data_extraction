@@ -22,17 +22,17 @@ llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)  # Changed to ChatOpenAI
 
 def extract_data(document_type, document_text):
     try:
-        if document_type == "Comprovante Bancário":     
-            prompt_template = generate_prompt_receipt_bank(document_text)     
-            prompt = PromptTemplate(input_variables=["document_text"], template=prompt_template)
-            
-
-        elif document_type == "CEI da Obra":
-            prompt_template = generate_prompt_cei_obra(document_text)     
-            prompt = PromptTemplate(input_variables=["document_text"], template=prompt_template)
-
-        else:
-            return {"success": False, "error": "Unknown or unsupported document type!"}        
+        match document_type:
+            case "Comprovante Bancário":
+                prompt_template = generate_prompt_receipt_bank(document_text)
+                prompt = PromptTemplate(input_variables=["document_text"], template=prompt_template)
+                
+            case "CEI da Obra":
+                prompt_template = generate_prompt_cei_obra(document_text)
+                prompt = PromptTemplate(input_variables=["document_text"], template=prompt_template)
+                
+            case _:
+                return {"success": False, "error": "Unknown or unsupported document type!"}        
         
         chain = LLMChain(llm=llm, prompt=prompt)  # Using LLMChain
         response = chain.run({"document_text": document_text})
