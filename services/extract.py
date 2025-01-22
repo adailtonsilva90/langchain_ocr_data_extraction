@@ -7,6 +7,16 @@ from PIL import Image
 import io
 import tempfile
 from fastapi import UploadFile
+from langchain_openai import ChatOpenAI 
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain  # Using LLMChain as an alternative to RunnableSequence
+import os
+from dotenv import load_dotenv
+import openai  # Necessary for interacting with the OpenAI API
+import json
+import re
+from models.doc_receipt_bank import generate_prompt_receipt_bank
+from models.doc_cei_obra import generate_prompt_cei_obra
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -40,32 +50,29 @@ def extract_text_with_azure(file_path):
 
 # Function to extract text from PDF files
 def extract_text_from_pdf(file_path):
-    """
-    Extrai texto de um arquivo PDF, convertendo páginas em imagens e processando com Azure OCR.
-    """
     text = ""
 
-    # Abrir o PDF pelo caminho do arquivo
+    # Open the PDF by file path
     with fitz.open(file_path) as doc:
         for page_num in range(doc.page_count):
             page = doc.load_page(page_num)
 
-            # Converter a página para imagem
+            # Convert the page to an image
             image = page.get_pixmap()
             image_bytes = image.tobytes("png")
             img = Image.open(io.BytesIO(image_bytes))
 
-            # Salvar imagem temporária para processamento no Azure
+            # Save a temporary image for processing in Azure
             temp_image_path = f"temp_page_{page_num}.png"
             img.save(temp_image_path)
 
-            # Use Azure OCR para extrair texto
+            # Use Azure OCR to extract text
             text += extract_text_with_azure(temp_image_path)
 
-            # Remover o arquivo temporário
+            # Remove the temporary file
             os.remove(temp_image_path)
 
-    return text
+        return text
 
 # Main function to handle different file types
 async def extract_text_from_file(file: UploadFile):
@@ -92,3 +99,36 @@ async def extract_text_from_file(file: UploadFile):
     finally:
         # Remover o arquivo temporário após o processamento
         os.remove(temp_file_path)
+
+
+# Retrieve the API Key from the environment variable
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Configure LangChain and Prompt
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)  # Changed to ChatOpenAI
+
+def extract_data(document_type, document_text):
+    try:
+        match document_type:
+            case "Comprovante Bancário":
+                prompt_template = generate_prompt_receipt_bank(document_type, document_text)
+                prompt = PromptTemplate(input_variables=["document_type","document_text"], template=prompt_template)
+                
+            case "CEI da Obra":
+                prompt_template = generate_prompt_cei_obra(document_type, document_text)
+                prompt = PromptTemplate(input_variables=["document_type","document_text"], template=prompt_template)
+                
+            case _:
+                return {"success": False, "error": "Unknown or unsupported document type!"}        
+        
+        chain = LLMChain(llm=llm, prompt=prompt)  # Using LLMChain
+        response = chain.run({"document_type": document_type, "document_text": document_text})
+        match = re.search(r"\{.*?\}", response, re.DOTALL)
+        if match:
+            match = match.group(0)
+
+        return match 
+        
+            
+    except Exception as e:
+        return json.dumps({"success": False, "error": str(e)})

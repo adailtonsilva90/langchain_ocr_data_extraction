@@ -1,51 +1,9 @@
-from langchain_openai import ChatOpenAI 
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain  # Using LLMChain as an alternative to RunnableSequence
-import os
 from dotenv import load_dotenv
-import openai  # Necessary for interacting with the OpenAI API
 import json
-from models.doc_receipt_bank import generate_prompt_receipt_bank
-from models.doc_cei_obra import generate_prompt_cei_obra
 from services.classify import classify_type_document
-from services.extract_text_file import extract_text_from_file
-import re
+from services.extract import extract_text_from_file, extract_data
 from fastapi import APIRouter, UploadFile, HTTPException,FastAPI
 
-# Load environment variables from the .env file
-load_dotenv()
-
-# Retrieve the API Key from the environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Configure LangChain and Prompt
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)  # Changed to ChatOpenAI
-
-def extract_data(document_type, document_text):
-    try:
-        match document_type:
-            case "Comprovante Bancário":
-                prompt_template = generate_prompt_receipt_bank(document_type, document_text)
-                prompt = PromptTemplate(input_variables=["document_type","document_text"], template=prompt_template)
-                
-            case "CEI da Obra":
-                prompt_template = generate_prompt_cei_obra(document_type, document_text)
-                prompt = PromptTemplate(input_variables=["document_type","document_text"], template=prompt_template)
-                
-            case _:
-                return {"success": False, "error": "Unknown or unsupported document type!"}        
-        
-        chain = LLMChain(llm=llm, prompt=prompt)  # Using LLMChain
-        response = chain.run({"document_type": document_type, "document_text": document_text})
-        match = re.search(r"\{.*?\}", response, re.DOTALL)
-        if match:
-            match = match.group(0)
-
-        return match 
-        
-            
-    except Exception as e:
-        return json.dumps({"success": False, "error": str(e)})
 
 app = FastAPI()
 @app.post("/process")
