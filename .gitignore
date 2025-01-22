@@ -1,5 +1,6 @@
 documents/
 .env
+test.py
 *.pdf
 *.png
 *.jpeg

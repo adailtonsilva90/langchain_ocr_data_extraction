@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 #     conta: str = Field(description="Numerical representation of the client's bank account")
 #     nome_banco: str = Field(description="Name of the banking institution")
 
-def generate_prompt_receipt_bank(document_text: str) -> str:
+def generate_prompt_receipt_bank(document_type: str, document_text: str) -> str:
     
     prompt = """
     Você é um agente que extrai informações de comprovantes bancários escaneados.
@@ -22,6 +22,7 @@ def generate_prompt_receipt_bank(document_text: str) -> str:
 
     Responda apenas no formato o JSON:
     {{
+        tipo_documento: {document_type},
         "razao_social": "Preencha com a razão social extraída do documento",
         "agencia": "Preencha com o número da agência extraída do documento",
         "conta": "Preencha com o número da conta extraída do documento",
