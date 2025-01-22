@@ -1,2 +1,6 @@
 documents/
 .env
+*.pdf
+*.png
+*.jpeg
+*.jpg
