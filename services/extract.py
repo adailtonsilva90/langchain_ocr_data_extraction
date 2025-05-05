@@ -114,10 +114,6 @@ def extract_data(document_type, document_text):
                 prompt_template = generate_prompt_receipt_bank(document_type, document_text)
                 prompt = PromptTemplate(input_variables=["document_type","document_text"], template=prompt_template)
                 
-            case "CEI da Obra":
-                prompt_template = generate_prompt_cei_obra(document_type, document_text)
-                prompt = PromptTemplate(input_variables=["document_type","document_text"], template=prompt_template)
-                
             case _:
                 return {"success": False, "error": "Unknown or unsupported document type!"}        
         
