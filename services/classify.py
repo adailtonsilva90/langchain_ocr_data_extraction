@@ -15,7 +15,6 @@ prompt_template = """
 Você recebe um texto de um documento e precisa classificá-lo em um dos seguintes tipos:
 
 1. Comprovante Bancário
-2. CEI da Obra
 
 Texto do documento:
 {document_text}
